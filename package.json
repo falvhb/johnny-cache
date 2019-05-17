@@ -1,8 +1,8 @@
 {
-  "name": "node-docker-good-defaults",
+  "name": "johnny-cache",
   "private": true,
   "version": "2.0.0",
-  "description": "Node.js Hello world app using docker features for easy docker-compose local dev and solid production defaults",
+  "description": "stale-while-revalidate cache",
   "author": "Bret Fisher <bret@bretfisher.com>",
   "main": "index.js",
   "scripts": {
@@ -17,8 +17,12 @@
   },
   "dependencies": {
     "express": "^4.16.3",
-    "mongodb": "^3.1.8",
-    "morgan": "^1.9.1"
+    "morgan": "^1.9.1",
+    "needle": "^2.4.0",
+    "node-dir": "^0.1.17",
+    "read-pkg": "^5.1.1",
+    "write": "^1.0.3",
+    "xxhash": "^0.2.4"
   },
   "devDependencies": {
     "chai": "^4.1.2",

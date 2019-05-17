@@ -1,4 +1,15 @@
-## Node + Docker Hello World, for Showing Good Defaults for Using Node.js in Docker
+## Johnny Cache
+
+### Configuration
+
+CACHE_MAX_AGE_SEC - Seconds - how old a resource can be
+
+CACHE_MAMA_INTERVAL_SEC - Seconds - How ofter should mama check the resource
+
+CACHE_MAMA_MAX_UPDATES - Amount of updates each mama run
+
+---
+
 
 > This tries to be a "good defaults" example of using Node.js in Docker for local development and shipping to production with all the bells, whistles, and best practices. Issues/PR welcome.
 

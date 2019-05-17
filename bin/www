@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 8080;
 // because containers don't have that issue :)
 
 var server = app.listen(PORT, function () {
-    console.log(`Webserver is ready and listening on port ${PORT}`);
+    console.log(`Webserver is ready and listening on port http://localhost:${PORT}`);
   });
   
 //
