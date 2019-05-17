@@ -46,6 +46,7 @@ app.get('/', function (req, res) {
     return res.send({
       name: pkg.name,
       version: pkg.version,
+      cache: cache.stats(),
       hint: 'url query parameter required'
     }
   );

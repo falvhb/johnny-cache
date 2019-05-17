@@ -29,7 +29,7 @@ module.exports = {
     },
     stats: function(){
         return {
-            items: mapCache.keys().length,
+            items: Object.keys(mapCache).length,
             setup: {
                 CACHE_MAX_AGE_SEC: CACHE_MAX_AGE_SEC,
                 CACHE_MAMA_INTERVAL_SEC: CACHE_MAMA_INTERVAL_SEC,
