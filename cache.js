@@ -11,10 +11,12 @@ let CACHE_MAMA_INTERVAL_SEC = process.env.CACHE_MAMA_INTERVAL_SEC || 10;
 let CACHE_MAMA_MAX_UPDATES = process.env.CACHE_MAMA_MAX_UPDATES || 5;
 
 module.exports = {
-    add: function (state) {
+    add: function (state, mode) {
         console.log(`Cache> ${state.hash} added`);
         if (mapCache[state.hash] && state.data){
-            mapCache[state.hash].updated = new Date();
+            if (mode !== 'file'){
+                mapCache[state.hash].updated = new Date();
+            }
             mapCache[state.hash].data = state.data;
         } else {
             state.updated = new Date();
@@ -60,19 +62,28 @@ function mama(){
     let updates = 0;
     console.log(`Cache> mama comes in`);
 
+    let candidates = [];
     for (let x in mapCache){
-        if (updates >= CACHE_MAMA_MAX_UPDATES) {
-            console.log(`Cache> mama update count of ${CACHE_MAMA_MAX_UPDATES} reached`);
-            return;
-        }
         let diff = new Date() - mapCache[x].updated;
         if (diff > (CACHE_MAX_AGE_SEC * 1000)){
-            setTimeout(function(){
-                updateCache(mapCache[x]);
-            }, 100 * updates);
-            updates++;
+            candidates.push({key: x, diff: diff});
         }
     }
+
+    console.log(`Cache> mama found ${candidates.length} items to update`);
+
+    candidates.sort((a, b) => (a.diff < b.diff) ? 1 : -1);
+    
+    candidates =  candidates.slice(0, CACHE_MAMA_MAX_UPDATES);
+
+    console.log(`Cache> updating ${CACHE_MAMA_MAX_UPDATES} items as defined`);
+
+    for (let i=0,ii=candidates.length;i<ii;i++){
+        setTimeout(function(){
+            updateCache(mapCache[candidates[i].key]);
+        }, 100 * i);
+    }
+    
     
 }
 
@@ -86,7 +97,7 @@ dir.readFiles('./cache', {
     function(err, content, next) {
         if (err) throw err;
         let state = JSON.parse(content);
-        module.exports.add(state);
+        module.exports.add(state, 'file');
         next();
     },
     function(err, files){
