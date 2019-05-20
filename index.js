@@ -14,6 +14,8 @@ const morgan = require('morgan');
 const XXHash = require('xxhash');
 const needle = require('needle');
 const readPkg = require('read-pkg');
+const compression = require('compression');
+const serverTiming = require('server-timing');
 
 const pkg = readPkg.sync();
 
@@ -26,6 +28,11 @@ const pkg = readPkg.sync();
 
 // Api
 const app = express();
+app.use(compression());
+app.disable('x-powered-by');
+app.use(serverTiming({
+  total: false
+}));
 
 //cache
 const cache = require('./cache');
@@ -33,6 +40,8 @@ const cache = require('./cache');
 app.use(morgan('common'));
 
 app.get('/', function (req, res) {
+  res.startTime('cache-hit', 'cache> Hit');
+  
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('X-Cache', 'Johnny Cache');
   //init
@@ -57,10 +66,10 @@ app.get('/', function (req, res) {
 
   //try to get cache
   state.cache = cache.get(state.hash);
-
   if (state.cache) {
     res.setHeader('X-Cache-Method', 'Cached');
     res.setHeader('X-Cache-Updated', state.cache.updated);
+    res.endTime('cache-hit');
     res.send(state.cache.data);
   } else {
     console.log(`Cache> ${state.hash} miss`);
@@ -68,19 +77,23 @@ app.get('/', function (req, res) {
 
   //just fetch the stuff
 
+  res.startTime('cache-fetch', 'cache> Fetch operation');
   needle.get(state.url, function (error, response) {
+    res.endTime('cache-fetch');
     if (!error && response.statusCode == 200) {
       if (!res.headersSent){
         res.setHeader('X-Cache-Method', 'Fetched');
+        res.endTime('cache-hit');
         res.send(response.body);
       }
 
       //cache it
       state.data = response.body;
+      
       cache.add(state);
 
     } else {
-      res.status(400).send(err);
+      res.status(400).send(error);
     }
 
 

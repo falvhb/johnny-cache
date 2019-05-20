@@ -7,7 +7,7 @@ let mapCache = {};
 
 
 let CACHE_MAX_AGE_SEC = process.env.CACHE_MAX_AGE_SEC || 60;
-let CACHE_MAMA_INTERVAL_SEC = process.env.CACHE_MAMA_INTERVAL_SEC || 10;
+let CACHE_MAMA_INTERVAL_SEC = process.env.CACHE_MAMA_INTERVAL_SEC || 60;
 let CACHE_MAMA_MAX_UPDATES = process.env.CACHE_MAMA_MAX_UPDATES || 5;
 
 module.exports = {

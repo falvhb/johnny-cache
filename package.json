@@ -16,11 +16,13 @@
     "test-wait-debuger": "cross-env NODE_ENV=test PORT=8081 mocha --no-timeouts --exit --inspect-brk=0.0.0.0:9230"
   },
   "dependencies": {
+    "compression": "^1.7.4",
     "express": "^4.16.3",
     "morgan": "^1.9.1",
     "needle": "^2.4.0",
     "node-dir": "^0.1.17",
     "read-pkg": "^5.1.1",
+    "server-timing": "^2.1.0",
     "write": "^1.0.3",
     "xxhash": "^0.2.4"
   },
