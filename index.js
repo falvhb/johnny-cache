@@ -20,6 +20,8 @@ const serverTiming = require('server-timing');
 
 const pkg = readPkg.sync();
 
+let CACHE_DEBOUNCE_SEC = process.env.CACHE_DEBOUNCE_SEC || 5;
+
 /**
  * 
  * http://localhost:84/?url=https://jsonplaceholder.typicode.com/posts
@@ -87,7 +89,7 @@ function reply(req, res) {
   if (cachedState) {
     res.setHeader('X-Cache-Method', 'Cached');
     res.setHeader('X-Cache-Updated', cachedState.updated);
-    res.endTime('cachedState-hit');
+    res.endTime('cache-hit');
     if (cachedState.contentType){
      res.setHeader('Content-Type', cachedState.contentType);
     } 
@@ -98,6 +100,15 @@ function reply(req, res) {
 
   //just fetch the stuff
 
+  if (cachedState){
+    let diff = new Date() - cachedState.updated;
+      if (diff < (CACHE_DEBOUNCE_SEC * 1000)){
+        console.log(`Cache> ${state.hash} cache age below debounce diff (${diff}) - no update`);
+        return true
+      }
+  }
+
+  console.log(`Cache> ${state.hash} updating cache`);
   res.startTime('cache-fetch', 'cache> Fetch operation');
   //needle('put', 'https://hacking.the.gibson/login', { password: 'god' }, { json: true })
 

@@ -5,7 +5,7 @@ const dir = require('node-dir');
 
 let mapCache = {};
 
-
+let CACHE_DEBOUNCE_SEC = process.env.CACHE_DEBOUNCE_SEC || 5;
 let CACHE_MAX_AGE_SEC = process.env.CACHE_MAX_AGE_SEC || 60;
 let CACHE_MAMA_INTERVAL_SEC = process.env.CACHE_MAMA_INTERVAL_SEC || 60;
 let CACHE_MAMA_MAX_UPDATES = process.env.CACHE_MAMA_MAX_UPDATES || 5;
@@ -19,7 +19,9 @@ module.exports = {
             }
             mapCache[state.hash].data = state.data;
         } else {
-            state.updated = new Date();
+            if (mode !== 'file'){
+                state.updated = new Date();
+            }
             mapCache[state.hash] = state;
         }
         if (state){
@@ -38,7 +40,8 @@ module.exports = {
             setup: {
                 CACHE_MAX_AGE_SEC: CACHE_MAX_AGE_SEC,
                 CACHE_MAMA_INTERVAL_SEC: CACHE_MAMA_INTERVAL_SEC,
-                CACHE_MAMA_MAX_UPDATES: CACHE_MAMA_MAX_UPDATES
+                CACHE_MAMA_MAX_UPDATES: CACHE_MAMA_MAX_UPDATES,
+                CACHE_DEBOUNCE_SEC: CACHE_DEBOUNCE_SEC
             }
         }
     }
@@ -111,6 +114,7 @@ dir.readFiles('./cache', {
     function(err, content, next) {
         if (err) throw err;
         let state = JSON.parse(content);
+        state.updated =  new Date(state.updated);
         module.exports.add(state, 'file');
         next();
     },
