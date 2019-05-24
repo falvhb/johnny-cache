@@ -17,28 +17,32 @@ describe('API /healthz', () => {
     });
 });
 
-describe('API /', () => {
-    it('it should return Welcome message', (done) => {
+describe('API GET/', () => {
+    it('it should JSON data', (done) => {
         chai.request(app)
-            .get('/')
+            .get('/?url=https://e2e:3ndT0End@dev-preview-www.handelsblatt.com/contentexport/feed/theme?cxpid=13906102')
             .end((err, res) => {
                 res.should.have.status(200);
-                res.should.to.be.html;
-                res.text.should.be.equal("Hello Docker World\n");
+                res.should.to.be.json;
+                //res.text.should.be.equal("Hello Docker World\n");
                 done();
             });
     });
 });
 
-describe('API /documents', () => {
-    it('it should return an empty array', (done) => {
+describe('API POST/', () => {
+    it('it should a content ID', (done) => {
         chai.request(app)
-            .get('/documents')
+            .post('/?url=https://e2e:3ndT0End@dev-preview-www.handelsblatt.com/urlresolver')
+            .set('Accept', 'text/plain')
+            .set('content-type', 'text/plain')
+            .send('/themen/tesla')
             .end((err, res) => {
                 res.should.have.status(200);
-                res.should.to.be.json;
-                res.body.should.be.a('array');
-                res.body.length.should.be.eql(0);
+                res.text.should.be.equal("13906102");
+                res.should.to.be.text;
+                
+                //res.body.length.should.be.eql(0);
                 done();
             });
     });

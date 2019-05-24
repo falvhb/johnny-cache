@@ -13,6 +13,7 @@ const morgan = require('morgan');
 // do app logging to files in containers.
 const XXHash = require('xxhash');
 const needle = require('needle');
+const bodyParser = require('body-parser');
 const readPkg = require('read-pkg');
 const compression = require('compression');
 const serverTiming = require('server-timing');
@@ -28,6 +29,7 @@ const pkg = readPkg.sync();
 
 // Api
 const app = express();
+app.use(bodyParser.text());
 app.use(compression());
 app.disable('x-powered-by');
 app.use(serverTiming({
@@ -39,15 +41,32 @@ const cache = require('./cache');
 
 app.use(morgan('common'));
 
-app.get('/', function (req, res) {
+//app.use('*', function (req, res, next) {
+//  console.log('Request Type:', req.method);
+//  next();
+//});
+
+
+function reply(req, res) {
   res.startTime('cache-hit', 'cache> Hit');
+
   
-  res.setHeader('Content-Type', 'application/json');
   res.setHeader('X-Cache', 'Johnny Cache');
   //init
   let state = {
-    url: req.query.url
+    url: req.query.url,
+    method: req.method,
+    body: req.body,
+    options: {
+      headers: {
+        'accept': req.headers.accept
+      }
+    }
   };
+
+  if (req.headers['content-type']){
+    state.options.content_type = req.headers['content-type'];
+  }
 
   //url required
   if (!state.url) {
@@ -57,20 +76,22 @@ app.get('/', function (req, res) {
       version: pkg.version,
       cache: cache.stats(),
       hint: 'url query parameter required'
-    }
-  );
+    });
   }
 
   //calc hash
-  state.hash = XXHash.hash64(Buffer.from(state.url), 0xCAFEBABE, 'hex');
+  state.hash = XXHash.hash64(Buffer.from(state.url + (req.body || '')), 0xCAFEBABE, 'hex');
 
   //try to get cache
-  state.cache = cache.get(state.hash);
-  if (state.cache) {
+  let cachedState = cache.get(state.hash);
+  if (cachedState) {
     res.setHeader('X-Cache-Method', 'Cached');
-    res.setHeader('X-Cache-Updated', state.cache.updated);
-    res.endTime('cache-hit');
-    res.send(state.cache.data);
+    res.setHeader('X-Cache-Updated', cachedState.updated);
+    res.endTime('cachedState-hit');
+    if (cachedState.contentType){
+     res.setHeader('Content-Type', cachedState.contentType);
+    } 
+    res.send(cachedState.data);
   } else {
     console.log(`Cache> ${state.hash} miss`);
   }
@@ -78,37 +99,40 @@ app.get('/', function (req, res) {
   //just fetch the stuff
 
   res.startTime('cache-fetch', 'cache> Fetch operation');
-  needle.get(state.url, function (error, response) {
-    res.endTime('cache-fetch');
-    if (!error && response.statusCode == 200) {
-      if (!res.headersSent){
+  //needle('put', 'https://hacking.the.gibson/login', { password: 'god' }, { json: true })
+
+    needle(state.method, state.url, state.body, {...state.options}).then(function(response) {
+      res.endTime('cache-fetch');
+      if (!res.headersSent) {
         res.setHeader('X-Cache-Method', 'Fetched');
         res.endTime('cache-hit');
         res.send(response.body);
       }
-
       //cache it
       state.data = response.body;
-      
+      state.contentType = response.headers['content-type'];
       cache.add(state);
+    })
+    .catch(function(error) {
+      res.endTime('cache-fetch');
+      state.error = error;
+      res.status(400).send(state);
+    });
 
-    } else {
-      res.status(400).send(error);
-    }
+  }
 
-
-  });
-
-  //res.send(state);
   //writeFile(`./cache/${state.hash}.json`, 'Hello file');
-});
+
+
+app.get('/', reply);
+app.post('/', reply);
+
 
 app.get('/healthz', function (req, res) {
   // do app logic here to determine if app is truly healthy
   // you should return 200 if healthy, and anything else will fail
   // if you want, you should be able to restrict this to localhost (include ipv4 and ipv6)
   res.send('I am happy and healthy\n');
-});
-
+})
 
 module.exports = app;

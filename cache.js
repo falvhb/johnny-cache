@@ -22,7 +22,10 @@ module.exports = {
             state.updated = new Date();
             mapCache[state.hash] = state;
         }
-        writeFile(`./cache/${state.hash}.json`, JSON.stringify(state));
+        if (state){
+            writeFile(`./cache/${state.hash}.json`, JSON.stringify(state));
+        }
+
     },
 
     get: function(hash) {
@@ -44,7 +47,18 @@ module.exports = {
 function updateCache(state){
     console.log(`Cache> ${state.hash} to be updated`);
     if (state.url){
-        needle.get(state.url, function (error, response) {
+        needle(state.method, state.url, state.body, {...state.options}).then(function(response) {
+            
+            state.data = response.body;
+            state.contentType = response.headers['content-type'];
+            module.exports.add(state);
+          })
+          .catch(function(error) {
+            console.log(`Cache> ${state.hash} error on update`, error);
+          });
+
+
+        /*needle.get(state.url, function (error, response) {
             if (!error && response.statusCode == 200) {
               //cache it
               state.data = response.body;
@@ -52,7 +66,7 @@ function updateCache(state){
             } else {
                 console.log(`Cache> ${state.hash} error on update`, error);
             }
-        });
+        });*/
     }
 }
 
@@ -76,7 +90,7 @@ function mama(){
     
     candidates =  candidates.slice(0, CACHE_MAMA_MAX_UPDATES);
 
-    console.log(`Cache> updating ${CACHE_MAMA_MAX_UPDATES} items as defined`);
+    console.log(`Cache> updating ${candidates.length} of max ${CACHE_MAMA_MAX_UPDATES} items`);
 
     for (let i=0,ii=candidates.length;i<ii;i++){
         setTimeout(function(){

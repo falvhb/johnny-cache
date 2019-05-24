@@ -1,5 +1,10 @@
 ## Johnny Cache
 
+### Development
+
+    nodemon --ignore cache
+
+
 ### Configuration
 
 CACHE_MAX_AGE_SEC - Seconds - how old a resource can be

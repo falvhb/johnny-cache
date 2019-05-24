@@ -15,8 +15,8 @@ services:
     command: ../node_modules/.bin/nodemon --inspect=0.0.0.0:9229 --ignore cache ./bin/www
     ports:
       - "84:8080"
-      - "9229:9229"
-      - "9230:9230"
+      #- "9229:9229"
+      #- "9230:9230"
     volumes:
       - .:/opt/node_app/app:delegated
       # bind-mounting these two files in will let you add packages during development without rebuilding
