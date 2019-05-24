@@ -1,7 +1,7 @@
 {
   "name": "johnny-cache",
   "private": true,
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "stale-while-revalidate cache",
   "author": "Bret Fisher <bret@bretfisher.com>",
   "main": "index.js",
