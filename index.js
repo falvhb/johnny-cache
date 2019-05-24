@@ -58,13 +58,17 @@ function reply(req, res) {
   let state = {
     url: req.query.url,
     method: req.method,
-    body: req.body,
     options: {
       headers: {
         'accept': req.headers.accept
       }
     }
   };
+
+  //body must be optional
+  if (req.method === 'POST'){
+    state.body = req.body;
+  }
 
   if (req.headers['content-type']){
     state.options.content_type = req.headers['content-type'];
@@ -108,7 +112,7 @@ function reply(req, res) {
       }
   }
 
-  console.log(`Cache> ${state.hash} updating cache`);
+  console.log(`Cache> ${state.hash} updating cache ${state.url}`);
   res.startTime('cache-fetch', 'cache> Fetch operation');
   //needle('put', 'https://hacking.the.gibson/login', { password: 'god' }, { json: true })
 
