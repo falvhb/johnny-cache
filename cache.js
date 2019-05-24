@@ -51,10 +51,13 @@ function updateCache(state){
     console.log(`Cache> ${state.hash} to be updated`);
     if (state.url){
         needle(state.method, state.url, state.body, {...state.options}).then(function(response) {
-            
-            state.data = response.body;
-            state.contentType = response.headers['content-type'];
-            module.exports.add(state);
+            if (response.statusCode == 200){
+                state.data = response.body;
+                state.contentType = response.headers['content-type'];
+                module.exports.add(state);
+            } else {
+                console.log(`Cache> ${state.hash} update failed due to invalid return code: ${response.statusCode}`);
+            }
           })
           .catch(function(error) {
             console.log(`Cache> ${state.hash} error on update`, error);

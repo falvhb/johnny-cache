@@ -118,15 +118,20 @@ function reply(req, res) {
 
     needle(state.method, state.url, state.body, {...state.options}).then(function(response) {
       res.endTime('cache-fetch');
-      if (!res.headersSent) {
-        res.setHeader('X-Cache-Method', 'Fetched');
-        res.endTime('cache-hit');
-        res.send(response.body);
+      if (response.statusCode == 200){
+        if (!res.headersSent) {
+          res.setHeader('X-Cache-Method', 'Fetched');
+          res.endTime('cache-hit');
+          res.send(response.body);
+        }
+        //cache it
+        state.data = response.body;
+        state.contentType = response.headers['content-type'];
+        cache.add(state);
+      } else {
+        res.status(response.statusCode).send(response.body);
+        console.log(`Cache> ${state.hash} no caching due to status code ${response.statusCode}`);
       }
-      //cache it
-      state.data = response.body;
-      state.contentType = response.headers['content-type'];
-      cache.add(state);
     })
     .catch(function(error) {
       res.endTime('cache-fetch');
